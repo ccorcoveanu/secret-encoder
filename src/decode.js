@@ -1,6 +1,8 @@
 const fs = require('fs');
 const jimp = require('jimp');
 const jsQR = require("jsqr");
+const scryptsy = require('scryptsy');
+const crypto = require('crypto');
 const zlib = require('zlib');
 const inquirer = require('inquirer');
 
@@ -19,24 +21,36 @@ const questions = [
   }
 ];
 
-const decode = async (file) => {
+const decode = async (file, output) => {
+  if ( !file ) {
+    throw Error("No encoded file provided");
+  }
+  if ( !output ) {
+    output = './output/decoded-secrets.json'
+  }
+
   const {password} = await inquirer.prompt(questions);
+  let qrImg = await jimp.read(fs.readFileSync(file));
+  if ( !qrImg ) {
+    throw Error("Invalid image file provided");
+  }
 
-  // let qrImg = await jimp.read(fs.readFileSync(file));
-  // if ( !qrImg ) {
-  //   throw Error("Invalid image file provided");
-  // }
-  //
-  // const code = jsQR(qrImg.bitmap.data, qrImg.bitmap.width, qrImg.bitmap.height);
-  //
-  // let dataImg = await jimp.read(Buffer.from(code.binaryData));
-  let dataImg = await jimp.read(fs.readFileSync('./output/test.jpg'));
-  dataImg.write('./output/outtest.jpg');
+  const code = jsQR(qrImg.bitmap.data, qrImg.bitmap.width, qrImg.bitmap.height);
 
-  console.log(dataImg.bitmap.data);
-  console.log(Buffer.from(extractEncryptedData(dataImg)));
-  //let encryptedData = zlib.inflateSync(Buffer.from(extractEncryptedData(dataImg)));
+  let dataImg = await jimp.read(Buffer.from(code.binaryData));
+  let encryptedData =
+    JSON.parse(
+      zlib.inflateSync(
+        Buffer.from(extractEncryptedData(dataImg))
+      ) .toString()
+    );
+  let plainData =
+    JSON.parse(
+      zlib.inflateSync(decryptData(encryptedData, password))
+        .toString()
+  );
 
+  fs.writeFileSync(output, JSON.stringify(plainData, null, 2));
 };
 
 function extractEncryptedData(dataImg) {
@@ -78,6 +92,27 @@ function extractEncryptedData(dataImg) {
   }
 
   return encryptedData;
+}
+
+function decryptData(encryptedData, password) {
+  const {kdfparams} = encryptedData;
+  const derivedKey = scryptsy(Buffer.from(password),
+    Buffer.from(kdfparams.salt, 'hex'), kdfparams.n, kdfparams.r, kdfparams.p, kdfparams.dklen);
+
+  const ciphertext = Buffer.from(encryptedData.ciphertext, 'hex');
+
+  const mac = crypto.createHmac('sha256', derivedKey.slice(16, 32))
+    .update(ciphertext)
+    .digest();
+
+  if ( mac.toString('hex') !== encryptedData.mac ) {
+    throw new Error('MAC mismatch, possibly wrong password');
+  }
+
+  const decipher = crypto.createDecipheriv(encryptedData.cipher, derivedKey.slice(0, 16),
+    Buffer.from(encryptedData.cipherparams.iv, 'hex'));
+
+  return Buffer.concat([decipher.update(ciphertext), decipher.final()]);
 }
 
 module.exports = decode;

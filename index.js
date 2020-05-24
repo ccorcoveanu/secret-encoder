@@ -5,7 +5,6 @@ const chalk = require('chalk');
 
 const args = process.argv.slice(2);
 const library = require('./src');
-const tempFile = './'
 
 const init = async (args) => {
   if ( args.length < 1 ) {
@@ -25,8 +24,8 @@ init(args)
   .then(_ => {
     console.log(
       chalk.red(
-        figlet.textSync('Your keys, your money', {
-          font: 'Morse',
+        figlet.textSync('Your keys, your money!', {
+          font: 'Ghost',
           horizontalLayout: 'full'
         })
       )

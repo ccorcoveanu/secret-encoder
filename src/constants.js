@@ -1,3 +1,3 @@
 module.exports = {
-  TEMP_FILE: './output/test.jpg'
+  TEMP_FILE: './output/test.png'
 };

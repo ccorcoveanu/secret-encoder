@@ -22,13 +22,12 @@ const questions = [
   }
 ];
 
-
 const encode = async (secret, output) => {
   if ( !secret ) {
     throw Error("No secret file provided");
   }
   if ( !output ) {
-    output = './source/qr.jpg'
+    output = './output/qr.jpg'
   }
 
   const {password} = await inquirer.prompt(questions);
@@ -64,7 +63,6 @@ const encode = async (secret, output) => {
           mode: 'byte'
         }
       ],
-      //{errorCorrectionLevel: 'L'}
     );
   });
 };
@@ -148,13 +146,13 @@ function saveTempJPG(mySecretToEmbed, matrixDimension, cb) {
 
           default: throw Error("Error calculating mockIntensityIndex");
         }
+        image.bitmap.data[imageDataCurrentIndex+3] = 255;
 
         mockIntensityIndex = (mockIntensityIndex + 1)%3;
       }
     }
 
-    let x = image.quality(100).write(TEMP_FILE, cb);
-    console.log(image.bitmap.data);
+    image.quality(100).write(TEMP_FILE, cb);
   });
 }
 
