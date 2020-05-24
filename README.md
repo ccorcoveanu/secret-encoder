@@ -13,7 +13,7 @@ In any case it was fun experimenting and I still consider it another small obfus
 $ git clone https://github.com/ccorcoveanu/secret-encoder.git && cd secret-encoder
 $ npm install -g
 $ secrets encode /path/to/secrets/file /path/to/resulting/qr/code
-$ secrets decode /path/to/qr/code
+$ secrets decode /path/to/qr/code /path/to/new/plain/data/file
 ```
 
 Note that encode/decode prompts for a password that will be used in encrypting/decrypting the data so **DO NOT FORGET IT**
