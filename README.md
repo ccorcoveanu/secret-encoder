@@ -23,6 +23,7 @@ Note that encode/decode prompts for a password that will be used in encrypting/d
  - Unit tests
  - Define a structure of the encoded data and add functionalities for add/remove - useful for how I am using it where 
  the data is a json containing wallets and node keys. Then we could have: `$ secrets add-wallet` and stuff like this
+ - Ask to repeat password
  - Prettier user prints and a help menu maybe
  - Find out how to use jimp resulting image and pipe that into the qr code instead of writing the temp file on disk
  - Find a way for the temp file to be jpeg by default so it will not have an alpha channel. This currently increases 
